@@ -27,11 +27,12 @@ def transcribe_audio(audio_filename="temp_audio.wav"):
         return f"Could not request results from Google Speech Recognition service; {e}"
 
 def download_youtube_video(url, output_path="downloaded_video.mp4"):
-    """Downloads a YouTube video and saves it as an MP4 file."""
+    """Downloads a YouTube video with authentication."""
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
         'outtmpl': output_path,
-        'merge_output_format': 'mp4'
+        'merge_output_format': 'mp4',
+        'cookies-from-browser': 'chrome'  # Change 'chrome' to your browser (firefox, edge, etc.)
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
