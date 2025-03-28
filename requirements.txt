@@ -5,3 +5,5 @@ pydub
 speechrecognition
 yt-dlp
 requests
+numpy
+imageio[ffmpeg]
