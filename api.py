@@ -3,6 +3,7 @@ import shutil
 import speech_recognition as sr
 import os
 from pydub import AudioSegment
+import yt_dlp
 
 app = FastAPI()
 
@@ -25,6 +26,17 @@ def transcribe_audio(audio_filename="temp_audio.wav"):
     except sr.RequestError as e:
         return f"Could not request results from Google Speech Recognition service; {e}"
 
+def download_youtube_video(url, output_path="downloaded_video.mp4"):
+    """Downloads a YouTube video and saves it as an MP4 file."""
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',
+        'outtmpl': output_path,
+        'merge_output_format': 'mp4'
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+    return output_path
+
 @app.post("/api/upload")
 async def upload_video(file: UploadFile = File(...), start: float = Query(...), end: float = Query(...)):
     """Upload video and process transcription."""
@@ -33,6 +45,19 @@ async def upload_video(file: UploadFile = File(...), start: float = Query(...), 
     with open(video_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
+    audio_path = "temp_audio.wav"
+    extract_audio_from_video(video_path, start, end, audio_path)
+    transcript = transcribe_audio(audio_path)
+    
+    os.remove(video_path)
+    os.remove(audio_path)
+    
+    return {"transcript": transcript}
+
+@app.get("/api/youtube")
+async def process_youtube_video(url: str, start: float, end: float):
+    """Download YouTube video, extract audio, and transcribe it."""
+    video_path = download_youtube_video(url)
     audio_path = "temp_audio.wav"
     extract_audio_from_video(video_path, start, end, audio_path)
     transcript = transcribe_audio(audio_path)
