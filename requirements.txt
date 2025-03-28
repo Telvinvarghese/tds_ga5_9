@@ -1,9 +1,6 @@
 fastapi
 uvicorn
-moviepy
-pydub
 speechrecognition
+pydub
 yt-dlp
-requests
-numpy
-imageio[ffmpeg]
+python-multipart
