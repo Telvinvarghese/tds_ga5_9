@@ -3,8 +3,20 @@ import shutil
 from moviepy.editor import VideoFileClip
 import speech_recognition as sr
 import os
+import yt_dlp
 
 app = FastAPI()
+
+def download_youtube_video(url, output_path="downloaded_video.mp4"):
+    """Downloads a YouTube video and saves it as an MP4 file."""
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',
+        'outtmpl': output_path,
+        'merge_output_format': 'mp4'
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+    return output_path
 
 def extract_audio_from_video(video_path, start_sec, end_sec, output_audio_path="temp_audio.wav"):
     """Extracts audio from a video segment and saves it as a WAV file."""
@@ -34,6 +46,19 @@ async def upload_video(file: UploadFile = File(...), start: float = Query(...), 
     with open(video_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
+    audio_path = "temp_audio.wav"
+    extract_audio_from_video(video_path, start, end, audio_path)
+    transcript = transcribe_audio(audio_path)
+    
+    os.remove(video_path)
+    os.remove(audio_path)
+    
+    return {"transcript": transcript}
+
+@app.get("/api/youtube")
+async def process_youtube_video(url: str, start: float, end: float):
+    """Download YouTube video, extract audio, and transcribe it."""
+    video_path = download_youtube_video(url)
     audio_path = "temp_audio.wav"
     extract_audio_from_video(video_path, start, end, audio_path)
     transcript = transcribe_audio(audio_path)
