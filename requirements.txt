@@ -3,3 +3,4 @@ uvicorn
 moviepy
 pydub
 speechrecognition
+yt-dlp
