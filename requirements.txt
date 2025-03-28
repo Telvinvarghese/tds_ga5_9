@@ -4,3 +4,4 @@ moviepy
 pydub
 speechrecognition
 yt-dlp
+requests
